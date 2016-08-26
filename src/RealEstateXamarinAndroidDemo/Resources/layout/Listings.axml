@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minWidth="25px"
+    android:minHeight="25px">
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2">
+        <Button
+            android:text="Back"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnListBack"
+            android:layout_weight="1" />
+        <Button
+            android:text="Filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnListFilter"
+            android:layout_weight="1" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="5">
+        <TextView
+            android:text="Page: "
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:id="@+id/textPaging"
+            android:layout_weight="4" />
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBarPaging"
+            android:layout_weight="1" />
+    </LinearLayout>
+    <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/lvListings" />
+</LinearLayout>
