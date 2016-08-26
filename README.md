@@ -1,6 +1,15 @@
 # Real Estate Xamarin Android Demo
-Demo Real Estate Application highlighting Azure Search &amp; Xamarin on Android
 
+This is a sample application written using Xamarin for Android that demonstrates how to build a mobile applications that leverages Azure Search to perform full text search.  
+
+Some of the concepts covered in this application include:
+- Type Ahead (or Suggestions)
+- Full Text Search 
+- Paging
+- Filtering
+- Recommendations by finding real estate listings that are similar to the one you are currently viewing
+
+## Screen Shots
 ![Demo Screen Shot - Type Ahead](https://raw.githubusercontent.com/liamca/RealEstateXamarinAndroidDemo/master/demo1.png)
 
 ![Demo Screen Shot - Search & Paging of Results](https://raw.githubusercontent.com/liamca/RealEstateXamarinAndroidDemo/master/demo2.png)
