@@ -11,18 +11,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Android.Graphics;
 using System.Net;
+using System.Net.Http;
 
 namespace RealEstateXamarinAndroidDemo
 {
     [Activity(Label = "RealEstateXamarinAndroidDemo", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity
     {
-        private Search _Search = new Search();
         // Below is a query key as well as a sample search service that you are free to use for demo or learning purposes
-        public static string AzureSearchApiKey = "F1F01D9405EF2EE6188891C7298D7390";        
-        public static string AzureSearchUrl = "https://realestate.search.windows.net/indexes/listings/docs?search=";
-        public static string AzureSuggestUrl = "https://realestate.search.windows.net/indexes/listings/docs/suggest?suggesterName=sg&$top=15&search=";
-        public static string AzureLookupUrl = "https://realestate.search.windows.net/indexes/listings/docs/";
+        public static string AzureSearchApiKey = "F1F01D9405EF2EE6188891C7298D7390";
+        public static string SearchServiceName = "realestate";
+        public static string AzureSuggestUrl = "/indexes/listings/docs/suggest?suggesterName=sg&$top=15&search=";
+        public static string AzureSearchUrl = "/indexes/listings/docs?search=";
+        public static string AzureLookupUrl = "/indexes/listings/docs/";
+        private static Uri _serviceUri;
+        private static HttpClient _httpClient;
 
         public static string StoredSearchQuery;
         public static List<ListListing> ListingsForList;
@@ -39,9 +42,18 @@ namespace RealEstateXamarinAndroidDemo
         public static int maxPage;
         public static int currentPage;
 
-        protected override void OnCreate(Bundle bundle)
+        protected async override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
+
+            // Initialize the http client
+            _serviceUri = new Uri("https://" + SearchServiceName + ".search.windows.net");
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("api-key", AzureSearchApiKey);
+
+            //Perform a test suggest to load HTTP client
+            await ExecSuggest("seattle");
+
             // Reset the filters
             filterMinBeds = 0;
             filterMaxBeds = 6;
@@ -55,13 +67,10 @@ namespace RealEstateXamarinAndroidDemo
             ConfigureMainLayout();
         }
 
-        private async void ConfigureMainLayout()
+        private void ConfigureMainLayout()
         {
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
-
-            //Perform a test suggest to load HTTP client
-            await ExecSuggest("seattle");
 
             AutoCompleteTextView SearchText = FindViewById<AutoCompleteTextView>(Resource.Id.autoCompleteSearchTextView);
             SearchText.TextChanged += SearchText_TextChanged;
@@ -170,14 +179,14 @@ namespace RealEstateXamarinAndroidDemo
         private int ExecListingsSearch(string q = null, bool countOnly = false)
         {
             // Execute a search using the supplied text and apply the results to a new listings list page
-            string url = AzureSearchUrl + "*";
+            string url = _serviceUri + AzureSearchUrl + "*";
             if (q != null)
             {
-                url = AzureSearchUrl + q;
+                url = _serviceUri + AzureSearchUrl + q;
                 StoredSearchQuery = q;
             }
             else if (StoredSearchQuery != null)
-                url = AzureSearchUrl + StoredSearchQuery;
+                url = _serviceUri + AzureSearchUrl + StoredSearchQuery;
 
             // Append the count request
             url += "&$count=true";
@@ -214,7 +223,11 @@ namespace RealEstateXamarinAndroidDemo
             url += statusFilter;
 
 
-            dynamic result = _Search.ExecQuery(url);
+            Uri uri = new Uri(url);
+            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
+            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
+            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
+
             JObject jsonObj = JObject.Parse(result.ToString());
 
             if (countOnly == false)
@@ -269,7 +282,7 @@ namespace RealEstateXamarinAndroidDemo
         private async Task<int> ExecMoreLikeThisListingsSearch(string listingIid)
         {
             // Execute a search to find similar listings to the one currently being viewed
-            string url = AzureSearchUrl + "*";
+            string url = _serviceUri + AzureSearchUrl + "*";
             url = AzureSearchUrl + "&morelikethis=" + listingIid;
 
             // Append the count request
@@ -300,8 +313,11 @@ namespace RealEstateXamarinAndroidDemo
                 statusFilter = " and status eq 'noresults'";
             url += statusFilter;
 
+            Uri uri = new Uri(url);
+            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
+            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
+            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
 
-            dynamic result = _Search.ExecQuery(url);
             JObject jsonObj = JObject.Parse(result.ToString());
 
             ListingsForDetails = new List<ListListing>(); ;
@@ -374,8 +390,11 @@ namespace RealEstateXamarinAndroidDemo
         private async Task<List<string>> ExecSuggest(string q)
         {
             // Execute /suggest API call to Azure Search and parse results
-            string url = AzureSuggestUrl + q;
-            dynamic result =  _Search.ExecQuery(url);
+            string url = _serviceUri + AzureSuggestUrl + q;
+            Uri uri = new Uri(url);
+            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
+            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
+            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
 
             JObject jsonObj = JObject.Parse(result.ToString());
             List<string> Suggestions = new List<string>();
@@ -401,8 +420,13 @@ namespace RealEstateXamarinAndroidDemo
             SetContentView(Resource.Layout.Details);
 
             // Do an Azure Search doc lookup using the specified id
-            string url = AzureLookupUrl + listingId;
-            dynamic result = _Search.ExecQuery(url);
+            string url = _serviceUri + AzureLookupUrl + listingId;
+
+            Uri uri = new Uri(url);
+            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
+            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
+            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
+
             JObject json = JObject.Parse(result.ToString());
 
             if (json != null)
