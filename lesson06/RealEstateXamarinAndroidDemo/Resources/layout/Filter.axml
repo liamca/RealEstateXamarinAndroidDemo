@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <Button
+        android:text="Back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/filterApply" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="5"
+        android:paddingRight="10dp"
+        android:paddingLeft="10dp">
+        <TextView
+            android:text="Beds:"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+        <TextView
+            android:text="Min"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingRight="5dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right" />
+        <EditText
+            android:layout_width="0dp"
+            android:paddingRight="5dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/filterBedsMin"
+            android:text="0"
+            android:gravity="center" />
+        <TextView
+            android:text="Max"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:paddingRight="5dp" />
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/filterBedsMax"
+            android:text="6"
+            android:gravity="center" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="5"
+        android:paddingRight="10dp"
+        android:paddingLeft="10dp">
+        <TextView
+            android:text="Baths:"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+        <TextView
+            android:text="Min"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingRight="5dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right" />
+        <EditText
+            android:layout_width="0dp"
+            android:paddingRight="5dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/filterBathsMin"
+            android:text="0"
+            android:gravity="center" />
+        <TextView
+            android:text="Max"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:paddingRight="5dp" />
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/filterBathsMax"
+            android:text="6"
+            android:gravity="center" />
+    </LinearLayout>
+    <CheckBox
+        android:text="For Sale Listings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/filterForSale"
+        android:layout_marginLeft="5dp" />
+    <CheckBox
+        android:text="Pending Listings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/filterPending"
+        android:layout_marginLeft="5dp" />
+    <CheckBox
+        android:text="Sold Listings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/filterSold"
+        android:layout_marginLeft="5dp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textSeparator2"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@android:color/darker_gray"
+        android:height="3dp" />
+    <TextView
+        android:text="Total Listings: "
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/filterTotalListings"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textSeparator2"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@android:color/darker_gray"
+        android:height="3dp" />
+</LinearLayout>
