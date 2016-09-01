@@ -6,7 +6,7 @@ Some of the concepts covered in this application include:
 - Type Ahead (or Suggestions)
 - Full Text Search 
 - Paging
-- Filtering
+- Filtering & Faceting
 - Recommendations by finding real estate listings that are similar to the one you are currently viewing
 
 ## Screen Shots

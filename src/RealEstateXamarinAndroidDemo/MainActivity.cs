@@ -180,7 +180,7 @@ namespace RealEstateXamarinAndroidDemo
         {
             // Execute a search using the supplied text and apply the results to a new listings list page
             string url = _serviceUri + AzureSearchUrl + "*";
-            if (q != null)
+            if (q != "")
             {
                 url = _serviceUri + AzureSearchUrl + q;
                 StoredSearchQuery = q;
@@ -196,7 +196,7 @@ namespace RealEstateXamarinAndroidDemo
                 url += "&$top=10";
 
             // Set the page
-            url += "&$skip="+currentPage;
+            url += "&$skip="+currentPage*10;
 
             // Append the filter
             url += "&$filter=beds ge " + filterMinBeds + " and beds le " + filterMaxBeds +

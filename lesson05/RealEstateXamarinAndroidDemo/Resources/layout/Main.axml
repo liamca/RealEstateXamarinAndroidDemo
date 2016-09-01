@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="4"
+        android:paddingRight="0dp"
+        android:id="@+id/linearSearchArea"
+        android:paddingLeft="0dp">
+        <AutoCompleteTextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingRight="5dp"
+            android:layout_weight="3"
+            android:text=""
+            android:gravity="center"
+            android:id="@+id/autoCompleteSearchTextView" />
+        <Button
+            android:text="Search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/buttonSearch" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/linearLayout2"
+        android:background="@drawable/main_background">
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/lstResults"
+            android:background="@android:color/background_dark" />
+    </LinearLayout>
+</LinearLayout>
