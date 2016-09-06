@@ -12,6 +12,7 @@ using System.Linq;
 using Android.Graphics;
 using System.Net;
 using System.Net.Http;
+using Plugin.Geolocator;
 
 namespace RealEstateXamarinAndroidDemo
 {
@@ -22,14 +23,10 @@ namespace RealEstateXamarinAndroidDemo
         public static string AzureSearchApiKey = "F1F01D9405EF2EE6188891C7298D7390";
         public static string SearchServiceName = "realestate";
         public static string AzureSuggestUrl = "/indexes/listings/docs/suggest?suggesterName=sg&$top=15&search=";
-        public static string AzureSearchUrl = "/indexes/listings/docs?search=";
         public static string AzureLookupUrl = "/indexes/listings/docs/";
+        public static string AzureSearchUrl = "/indexes/listings/docs?search=";
         private static Uri _serviceUri;
         private static HttpClient _httpClient;
-
-        public static string StoredSearchQuery;
-        public static List<ListListing> ListingsForList;
-        public static List<ListListing> ListingsSimilarForDetails;
 
         public static int filterMinBeds;
         public static int filterMaxBeds;
@@ -39,20 +36,21 @@ namespace RealEstateXamarinAndroidDemo
         public static bool filterShowPending;
         public static bool filterShowSold;
 
+        public static List<ListListing> ListingsForList;
+        public static string StoredSearchQuery;
+
         public static int maxPage;
         public static int currentPage;
 
         protected async override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
+            ConfigureMainLayout();
 
             // Initialize the http client
             _serviceUri = new Uri("https://" + SearchServiceName + ".search.windows.net");
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("api-key", AzureSearchApiKey);
-
-            //Perform a test suggest to load HTTP client
-            await ExecSuggest("seattle");
 
             // Reset the filters
             filterMinBeds = 0;
@@ -63,110 +61,21 @@ namespace RealEstateXamarinAndroidDemo
             filterShowPending = true;
             filterShowSold = true;
 
-            currentPage = 0;
-            ConfigureMainLayout();
+            //Perform a test suggest to load HTTP client
+            await ExecSuggest("seattle");
         }
 
-        private void ConfigureMainLayout()
+        private async void ConfigureMainLayout()
         {
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
+            FindViewById<Button>(Resource.Id.buttonSearch).Click += SearchButton_Click;
 
             AutoCompleteTextView SearchText = FindViewById<AutoCompleteTextView>(Resource.Id.autoCompleteSearchTextView);
             SearchText.TextChanged += SearchText_TextChanged;
             SearchText.AfterTextChanged += SearchText_AfterTextChanged;
 
-            FindViewById<Button>(Resource.Id.buttonSearch).Click += SearchButton_Click;
 
-        }
-        private void ConfigureListingsLayout()
-        {
-            SetContentView(Resource.Layout.Listings);
-
-            ListView lvListings = FindViewById<ListView>(Resource.Id.lvListings);
-            lvListings.Adapter = new LoadListings(this, ListingsForList);
-            lvListings.ItemClick += LvListings_ItemClick;
-
-            FindViewById<Button>(Resource.Id.btnListBack).Click += ButtonBack_Click;
-            FindViewById<Button>(Resource.Id.btnListFilter).Click += ButtonFilter_Click;
-
-            SeekBar seekBar = FindViewById<SeekBar>(Resource.Id.seekBarPaging);
-            seekBar.StopTrackingTouch += SeekBar_StopTrackingTouch;
-            seekBar.ProgressChanged += SeekBar_ProgressChanged;
-            seekBar.Progress = currentPage;
-
-        }
-
-        private void SeekBar_ProgressChanged(object sender, SeekBar.ProgressChangedEventArgs e)
-        {
-            TextView seekBarText = FindViewById<TextView>(Resource.Id.textPaging);
-            seekBarText.Text = "Page " + (Convert.ToInt32(e.SeekBar.Progress) + 1).ToString();
-        }
-
-        private void SeekBar_StopTrackingTouch(object sender, SeekBar.StopTrackingTouchEventArgs e)
-        {
-            currentPage = e.SeekBar.Progress;
-            ExecListingsSearch();
-        }
-
-        private void ConfigureFilterLayout()
-        {
-            SetContentView(Resource.Layout.Filter);
-            FindViewById<TextView>(Resource.Id.filterTotalListings).Text = "Total Listings: " + ExecListingsSearch(countOnly: true);
-
-            FindViewById<EditText>(Resource.Id.filterBedsMin).Text = filterMinBeds.ToString();
-            FindViewById<EditText>(Resource.Id.filterBedsMax).Text = filterMaxBeds.ToString();
-            FindViewById<EditText>(Resource.Id.filterBathsMin).Text = filterMinBaths.ToString();
-            FindViewById<EditText>(Resource.Id.filterBedsMax).Text = filterMaxBaths.ToString();
-            FindViewById<CheckBox>(Resource.Id.filterForSale).Checked = filterShowForSale;
-            FindViewById<CheckBox>(Resource.Id.filterPending).Checked = filterShowPending;
-            FindViewById<CheckBox>(Resource.Id.filterSold).Checked = filterShowSold;
-
-            // Handle updates
-            FindViewById<EditText>(Resource.Id.filterBedsMin).TextChanged += FilterActivity_TextChanged;
-            FindViewById<EditText>(Resource.Id.filterBedsMax).TextChanged += FilterActivity_TextChanged;
-            FindViewById<EditText>(Resource.Id.filterBathsMin).TextChanged += FilterActivity_TextChanged;
-            FindViewById<EditText>(Resource.Id.filterBedsMax).TextChanged += FilterActivity_TextChanged;
-            FindViewById<CheckBox>(Resource.Id.filterForSale).CheckedChange += FilterActivity_CheckedChange;
-            FindViewById<CheckBox>(Resource.Id.filterPending).CheckedChange += FilterActivity_CheckedChange;
-            FindViewById<CheckBox>(Resource.Id.filterSold).CheckedChange += FilterActivity_CheckedChange;
-
-            Button filterApply = FindViewById<Button>(Resource.Id.filterApply);
-            filterApply.Click += FilterApply_Click;
-        }
-
-        private void FilterActivity_TextChanged(object sender, Android.Text.TextChangedEventArgs e)
-        {
-            // Store updated filter changes 
-            try
-            {
-                filterMinBeds = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBedsMin).Text);
-                filterMaxBeds = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBedsMax).Text);
-                filterMinBaths = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBathsMin).Text);
-                filterMaxBaths = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBathsMax).Text);
-                FindViewById<TextView>(Resource.Id.filterTotalListings).Text = "Total Listings: " + ExecListingsSearch(countOnly: true);
-            }
-            catch
-            {
-                // likely they hit delete and it is empty
-            }
-        }
-
-        private void FilterActivity_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
-        {
-            // Store updated filter changes 
-            filterShowForSale = FindViewById<CheckBox>(Resource.Id.filterForSale).Checked;
-            filterShowPending = FindViewById<CheckBox>(Resource.Id.filterPending).Checked;
-            filterShowSold = FindViewById<CheckBox>(Resource.Id.filterSold).Checked;
-            FindViewById<TextView>(Resource.Id.filterTotalListings).Text = "Total Listings: " + ExecListingsSearch(countOnly: true);
-        }
-
-
-        private void FilterApply_Click(object sender, EventArgs e)
-        {
-            // Go back to listsings
-            ConfigureListingsLayout();
-            ExecListingsSearch();
         }
 
         private void SearchButton_Click(object sender, EventArgs e)
@@ -176,27 +85,20 @@ namespace RealEstateXamarinAndroidDemo
             ExecListingsSearch(SearchText.Text);
         }
 
-        private int ExecListingsSearch(string q = null, bool countOnly = false)
+        private async Task<int> ExecListingsSearch(string q = null, bool countOnly = false)
         {
             // Execute a search using the supplied text and apply the results to a new listings list page
             string url = _serviceUri + AzureSearchUrl + "*";
+
             if (q != "")
-            {
                 url = _serviceUri + AzureSearchUrl + q;
-                StoredSearchQuery = q;
-            }
-            else if (StoredSearchQuery != null)
-                url = _serviceUri + AzureSearchUrl + StoredSearchQuery;
 
             // Append the count request
             url += "&$count=true";
-            if (countOnly)  // Don't get results
-                url += "&$top=0";
-            else
-                url += "&$top=10";
+            url += "&$top=10";
 
             // Set the page
-            url += "&$skip="+currentPage*10;
+            url += "&$skip=" + currentPage * 10;
 
             // Append the filter
             url += "&$filter=beds ge " + filterMinBeds + " and beds le " + filterMaxBeds +
@@ -218,10 +120,17 @@ namespace RealEstateXamarinAndroidDemo
                 statusFilter = " and (status eq 'sold')";
             else if (!(filterShowForSale) && (filterShowPending) && !(filterShowSold))
                 statusFilter = " and (status eq 'pending')";
-            else 
+            else
                 statusFilter = " and status eq 'noresults'";
             url += statusFilter;
 
+            // Get the users location
+            var locator = CrossGeolocator.Current;
+            locator.DesiredAccuracy = 100; //100 is new default
+            var position = await locator.GetPositionAsync(timeoutMilliseconds: 10000);
+            double lat = position.Latitude;
+            double lon = position.Longitude;
+            url += "&scoringProfile=geoScoring&scoringParameter=currentLocation:" + lon.ToString() + "," + lat.ToString();
 
             Uri uri = new Uri(url);
             HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
@@ -279,63 +188,6 @@ namespace RealEstateXamarinAndroidDemo
             return Convert.ToInt32(docCount.ToString());
         }
 
-        private void ExecMoreLikeThisListingsSearch(string listingIid)
-        {
-            // Execute a search to find similar listings to the one currently being viewed
-            string url = _serviceUri + AzureSearchUrl + "&morelikethis=" + listingIid;
-            url += "&$top=1";
-
-            // Only do comparison over a few fields
-            url += "&searchFields=description,city,region";
-
-            Uri uri = new Uri(url);
-            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
-            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
-            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
-
-            JObject jsonObj = JObject.Parse(result.ToString());
-
-            ListingsSimilarForDetails = new List<ListListing>(); ;
-
-            foreach (var item in jsonObj["value"])
-            {
-                ListListing ll = new ListListing();
-                ll.ImageUrl = item["thumbnail"].ToString();
-                string price = "$" + Convert.ToInt32(item["price"].ToString()).ToString("#,##0");
-                ll.MainText = price + " Beds: " + item["beds"].ToString() +
-                    " Baths: " + item["baths"].ToString() +
-                    " Sq Ft.: " + Convert.ToInt32(item["sqft"].ToString()).ToString("#,##0");
-
-                ll.Id = item["listingId"].ToString();
-                // build up the address
-                string address = string.Empty;
-                if (item["number"] != null)
-                    address += item["number"].ToString() + " ";
-                if (item["street"] != null)
-                    address += item["street"].ToString() + " ";
-                if (item["city"] != null)
-                    address += item["city"].ToString() + " ";
-                if (item["region"] != null)
-                    address += item["region"].ToString() + " ";
-
-                ll.SubText = address;
-                ListingsSimilarForDetails.Add(ll);
-            }
-
-            // Default to the listings list for search results
-            ListView lvListingsSimilar = FindViewById<ListView>(Resource.Id.lvListingsSimilar);
-            lvListingsSimilar.Adapter = new LoadListings(this, ListingsSimilarForDetails);
-            lvListingsSimilar.ItemClick += LvListingsSimilar_ItemClick;
-
-            return;
-        }
-
-        private void LvListingsSimilar_ItemClick(object sender, AdapterView.ItemClickEventArgs e)
-        {
-            // User clicked on an item so grab id an pass to the detail page
-            ListListing ll = ListingsSimilarForDetails[Convert.ToInt32(e.Id)];
-            ConfigureDetailsLayout(ll.Id);
-        }
 
         private void SearchText_AfterTextChanged(object sender, Android.Text.AfterTextChangedEventArgs e)
         {
@@ -366,25 +218,23 @@ namespace RealEstateXamarinAndroidDemo
             {
             }
         }
-        
-        private async Task<List<string>> ExecSuggest(string q)
-        {
-            // Execute /suggest API call to Azure Search and parse results
-            string url = _serviceUri + AzureSuggestUrl + q;
-            Uri uri = new Uri(url);
-            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
-            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
-            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
 
-            JObject jsonObj = JObject.Parse(result.ToString());
-            List<string> Suggestions = new List<string>();
-            // Iterate through the results to get the suggestions
-            foreach (var item in jsonObj["value"])
-            {
-                Suggestions.Add(item["@search.text"].ToString());
-            }
-            // Limit to unique suggestions and sort
-            return Suggestions.Distinct().OrderBy(x => x).ToList();
+
+        
+        private void ConfigureListingsLayout()
+        {
+            SetContentView(Resource.Layout.Listings);
+            FindViewById<Button>(Resource.Id.btnListBack).Click += ButtonBack_Click;
+            FindViewById<Button>(Resource.Id.btnListFilter).Click += ButtonFilter_Click;
+
+            ListView lvListings = FindViewById<ListView>(Resource.Id.lvListings);
+            lvListings.Adapter = new LoadListings(this, ListingsForList);
+            lvListings.ItemClick += LvListings_ItemClick;
+
+            SeekBar seekBar = FindViewById<SeekBar>(Resource.Id.seekBarPaging);
+            seekBar.StopTrackingTouch += SeekBar_StopTrackingTouch;
+            seekBar.ProgressChanged += SeekBar_ProgressChanged;
+            seekBar.Progress = currentPage;
 
         }
 
@@ -444,8 +294,6 @@ namespace RealEstateXamarinAndroidDemo
                 TextView txtListingId = FindViewById<TextView>(Resource.Id.textDetailsListingId);
                 txtListingId.Text = "Listing ID: " + json["listingId"].ToString();
 
-                // Run this async
-                ExecMoreLikeThisListingsSearch(listingId);
 
             }
 
@@ -477,6 +325,20 @@ namespace RealEstateXamarinAndroidDemo
             ExecListingsSearch();
         }
 
+
+        private void SeekBar_ProgressChanged(object sender, SeekBar.ProgressChangedEventArgs e)
+        {
+            TextView seekBarText = FindViewById<TextView>(Resource.Id.textPaging);
+            seekBarText.Text = "Page " + (Convert.ToInt32(e.SeekBar.Progress) + 1).ToString();
+        }
+
+        private void SeekBar_StopTrackingTouch(object sender, SeekBar.StopTrackingTouchEventArgs e)
+        {
+            currentPage = e.SeekBar.Progress;
+            ExecListingsSearch();
+        }
+
+
         private void ButtonBack_Click(object sender, EventArgs e)
         {
             // Go back to main layout
@@ -488,6 +350,86 @@ namespace RealEstateXamarinAndroidDemo
             // Go to filter page
             ConfigureFilterLayout();
         }
+
+        private void ConfigureFilterLayout()
+        {
+            SetContentView(Resource.Layout.Filter);
+
+            FindViewById<EditText>(Resource.Id.filterBedsMin).Text = filterMinBeds.ToString();
+            FindViewById<EditText>(Resource.Id.filterBedsMax).Text = filterMaxBeds.ToString();
+            FindViewById<EditText>(Resource.Id.filterBathsMin).Text = filterMinBaths.ToString();
+            FindViewById<EditText>(Resource.Id.filterBedsMax).Text = filterMaxBaths.ToString();
+            FindViewById<CheckBox>(Resource.Id.filterForSale).Checked = filterShowForSale;
+            FindViewById<CheckBox>(Resource.Id.filterPending).Checked = filterShowPending;
+            FindViewById<CheckBox>(Resource.Id.filterSold).Checked = filterShowSold;
+
+            // Handle updates
+            FindViewById<EditText>(Resource.Id.filterBedsMin).TextChanged += FilterActivity_TextChanged;
+            FindViewById<EditText>(Resource.Id.filterBedsMax).TextChanged += FilterActivity_TextChanged;
+            FindViewById<EditText>(Resource.Id.filterBathsMin).TextChanged += FilterActivity_TextChanged;
+            FindViewById<EditText>(Resource.Id.filterBedsMax).TextChanged += FilterActivity_TextChanged;
+            FindViewById<CheckBox>(Resource.Id.filterForSale).CheckedChange += FilterActivity_CheckedChange;
+            FindViewById<CheckBox>(Resource.Id.filterPending).CheckedChange += FilterActivity_CheckedChange;
+            FindViewById<CheckBox>(Resource.Id.filterSold).CheckedChange += FilterActivity_CheckedChange;
+
+
+            Button filterApply = FindViewById<Button>(Resource.Id.filterApply);
+            filterApply.Click += FilterApply_Click;
+        }
+
+        private void FilterActivity_TextChanged(object sender, Android.Text.TextChangedEventArgs e)
+        {
+            // Store updated filter changes 
+            try
+            {
+                filterMinBeds = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBedsMin).Text);
+                filterMaxBeds = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBedsMax).Text);
+                filterMinBaths = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBathsMin).Text);
+                filterMaxBaths = Convert.ToInt32(FindViewById<EditText>(Resource.Id.filterBathsMax).Text);
+                FindViewById<TextView>(Resource.Id.filterTotalListings).Text = "Total Listings: " + ExecListingsSearch(countOnly: true);
+            }
+            catch
+            {
+                // likely they hit delete and it is empty
+            }
+        }
+
+        private void FilterActivity_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
+        {
+            // Store updated filter changes 
+            filterShowForSale = FindViewById<CheckBox>(Resource.Id.filterForSale).Checked;
+            filterShowPending = FindViewById<CheckBox>(Resource.Id.filterPending).Checked;
+            filterShowSold = FindViewById<CheckBox>(Resource.Id.filterSold).Checked;
+            FindViewById<TextView>(Resource.Id.filterTotalListings).Text = "Total Listings: " + ExecListingsSearch(countOnly: true);
+        }
+
+        private void FilterApply_Click(object sender, EventArgs e)
+        {
+            // Go back to listsings
+            ConfigureListingsLayout();
+        }
+
+        private async Task<List<string>> ExecSuggest(string q)
+        {
+            // Execute /suggest API call to Azure Search and parse results
+            string url = _serviceUri + AzureSuggestUrl + q;
+
+            Uri uri = new Uri(url);
+            HttpResponseMessage response = AzureSearchHelper.SendSearchRequest(_httpClient, HttpMethod.Get, uri);
+            AzureSearchHelper.EnsureSuccessfulSearchResponse(response);
+            dynamic result = AzureSearchHelper.DeserializeJson<dynamic>(response.Content.ReadAsStringAsync().Result);
+
+            JObject jsonObj = JObject.Parse(result.ToString());
+            List<string> Suggestions = new List<string>();
+            // Iterate through the results to get the suggestions
+            foreach (var item in jsonObj["value"])
+            {
+                Suggestions.Add(item["@search.text"].ToString());
+            }
+            // Limit to unique suggestions and sort
+            return Suggestions.Distinct().OrderBy(x => x).ToList();
+        }
+
     }
 }
 
