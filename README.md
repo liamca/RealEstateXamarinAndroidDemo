@@ -22,11 +22,11 @@ Some of the concepts covered in this application include:
 
 ## Course Videos
 
-<a href="https://liamca.blob.core.windows.net/videos/Lesson1.mp4" target="_blank">Download Lesson 1</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson2.mp4" target="_blank">Download Lesson 2</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson3.mp4" target="_blank">Download Lesson 3</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson4.mp4" target="_blank">Download Lesson 4</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson5.mp4" target="_blank">Download Lesson 5</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson6.mp4" target="_blank">Download Lesson 6</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson7.mp4" target="_blank">Download Lesson 7</a><br/>
-<a href="https://liamca.blob.core.windows.net/videos/Lesson8.mp4" target="_blank">Download Lesson 8</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson1.mp4" target="_blank">Download Lesson 1 - What is a Search Enabled Application and intro to Azure Search?</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson2.mp4" target="_blank">Download Lesson 2 - Type Ahead Search Suggestions</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson3.mp4" target="_blank">Download Lesson 3 - Full Text Search and Paging</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson4.mp4" target="_blank">Download Lesson 4 - Filtering Search Results</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson5.mp4" target="_blank">Download Lesson 5 - Document Lookup</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson6.mp4" target="_blank">Download Lesson 6 - Adding Intelligence using More Like This</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson7.mp4" target="_blank">Download Lesson 7 - Scoring and Tuning</a><br/>
+<a href="https://liamca.blob.core.windows.net/videos/Lesson8.mp4" target="_blank">Download Lesson 8 - Analytics</a><br/>
