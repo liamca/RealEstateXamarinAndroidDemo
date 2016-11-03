@@ -89,10 +89,14 @@ namespace RealEstateXamarinAndroidDemo
         private int ExecListingsSearch(string q = null, bool countOnly = false)
         {
             // Execute a search using the supplied text and apply the results to a new listings list page
-            string url = _serviceUri + AzureSearchUrl + "*";
-
-            if (q != "")
+            string url = _serviceUri + "*";
+            if (q != null)
+            {
                 url = _serviceUri + AzureSearchUrl + q;
+                StoredSearchQuery = q;
+            }
+            else if (StoredSearchQuery != null)
+                url = _serviceUri + AzureSearchUrl + StoredSearchQuery;
 
             // Append the count request
             url += "&$count=true";
